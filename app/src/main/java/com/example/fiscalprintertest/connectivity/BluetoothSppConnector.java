@@ -59,6 +59,7 @@ public class BluetoothSppConnector extends AbstractConnector {
         BluetoothSocket btSocket = getBtSocket(mBtDevice);
         mBtSocket = btSocket;
         mBtSocket.connect();
+
     }
 
     @Override

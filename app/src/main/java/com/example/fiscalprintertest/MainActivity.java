@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
             binding.selectButton.setOnClickListener(v -> {
                 String deviceAddress = binding.devAddrEt.getText().toString();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
+
                 if (device == null) {
 
                 } else {
@@ -97,6 +98,15 @@ public class MainActivity extends AppCompatActivity {
                             String modelVendorName = PrinterManager.instance.getModelVendorName();
 
                             runOnUiThread(() -> {
+
+                                if (fiscalDevice == null){
+                                    Toast.makeText(MainActivity.this, "Cannot connect", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
+                                if (fiscalDevice.isConnectedPrinter()){
+                                    Toast.makeText(this, "Printer is connected", Toast.LENGTH_SHORT).show();
+                                }
                                 Toast.makeText(MainActivity.this, modelVendorName, Toast.LENGTH_SHORT).show();
                             });
 
@@ -106,7 +116,16 @@ public class MainActivity extends AppCompatActivity {
                             cmdConfig.DateTime myClock= new cmdConfig.DateTime();
                             myClock.setDateTime("29-09-24","12:00:00");
 
+                            Thread.sleep(500);
+                            cmdConfig.DateTime clock = new cmdConfig.DateTime();
 
+                            runOnUiThread(() -> {
+                                try {
+                                    Toast.makeText(this, clock.getDateTime(), Toast.LENGTH_SHORT).show();
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            });
 
 
 
