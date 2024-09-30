@@ -3,8 +3,10 @@ package com.example.fiscalprintertest;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothSocket;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -20,13 +22,17 @@ import com.datecs.fiscalprinter.SDK.model.UserLayerV1.cmdConfig;
 import com.example.fiscalprintertest.connectivity.BluetoothSppConnector;
 import com.example.fiscalprintertest.databinding.ActivityMainBinding;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
+    private BluetoothSocket socket = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,37 +91,49 @@ public class MainActivity extends AppCompatActivity {
                 String deviceAddress = binding.devAddrEt.getText().toString();
                 BluetoothDevice device = bluetoothAdapter.getRemoteDevice(deviceAddress);
                 if (device == null) {
+                    Toast.makeText(this, "Device not found", Toast.LENGTH_SHORT).show();
 
                 } else {
-                    BluetoothSppConnector connector = new BluetoothSppConnector(device);
-                    executorService.execute(() -> {
-                        try {
-                            connector.connect();
-                            PrinterManager.getInstance().init(connector);
-                            DatecsFiscalDevice fiscalDevice = PrinterManager.getFiscalDevice();
+                    Toast.makeText(this, "Device found", Toast.LENGTH_SHORT).show();
+                    int state = device.getBondState();
 
-                            String modelVendorName = PrinterManager.instance.getModelVendorName();
-
-                            runOnUiThread(() -> {
-                                Toast.makeText(MainActivity.this, modelVendorName, Toast.LENGTH_SHORT).show();
-                            });
-
-                            // here we can test the commands
-
-                            // set date and time
-                            cmdConfig.DateTime myClock= new cmdConfig.DateTime();
-                            myClock.setDateTime("29-09-24","12:00:00");
-
-
-
-
-
-                        } catch (Exception e) {
-                            e.printStackTrace();
-
-
-                        }
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Bond state: " + state, Toast.LENGTH_SHORT).show();
                     });
+
+                    try {
+                        socket = device.createRfcommSocketToServiceRecord(UUID.randomUUID());//UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+
+                        new Thread(() -> {
+                            try {
+                                socket.connect();
+                                PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+                                writer.println("Hello from Android");
+                                writer.flush();
+
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }).start();
+
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
+            });
+
+            binding.sendButton.setOnClickListener(v -> {
+                String message = binding.messageEt.getText().toString();
+                if (!message.isEmpty() && socket != null){
+                    PrintWriter writer;
+                    try {
+                        writer = new PrintWriter(socket.getOutputStream(), true);
+                        writer.println(message);
+                        writer.flush();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
                 }
             });
@@ -123,7 +141,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult (int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         // let the user know what would happen depending on the option they chose
     }
