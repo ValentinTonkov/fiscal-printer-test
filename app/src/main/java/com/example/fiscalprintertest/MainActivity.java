@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.datecs.fiscalprinter.SDK.model.DatecsFiscalDevice;
 
 import com.datecs.fiscalprinter.SDK.model.UserLayerV1.cmdConfig;
+import com.datecs.fiscalprinter.SDK.model.UserLayerV1.cmdReport;
 import com.example.fiscalprintertest.connectivity.BluetoothSppConnector;
 import com.example.fiscalprintertest.databinding.ActivityMainBinding;
 
@@ -113,20 +114,6 @@ public class MainActivity extends AppCompatActivity {
                             // here we can test the commands
 
                             // set date and time
-                            cmdConfig.DateTime myClock= new cmdConfig.DateTime();
-                            myClock.setDateTime("29-09-24","12:00:00");
-
-                            Thread.sleep(500);
-                            cmdConfig.DateTime clock = new cmdConfig.DateTime();
-
-                            runOnUiThread(() -> {
-                                try {
-                                    Toast.makeText(this, clock.getDateTime(), Toast.LENGTH_SHORT).show();
-                                } catch (Exception e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
-
 
 
                         } catch (Exception e) {
@@ -137,6 +124,39 @@ public class MainActivity extends AppCompatActivity {
                     });
 
                 }
+            });
+
+            binding.setDataTime.setOnClickListener((v) -> {
+               /* cmdConfig.DateTime myClock= new cmdConfig.DateTime();
+                try {
+                    myClock.setDateTime("30-09-24","15:33:00");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+
+
+                cmdConfig.DateTime clock = new cmdConfig.DateTime();
+
+                runOnUiThread(() -> {
+                    try {
+                        Toast.makeText(this, clock.getDateTime(), Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+
+                */
+
+                final cmdReport.ReportSummary reportSummary = new cmdReport.ReportSummary();
+                new Thread(() ->{
+                    try {
+                        cmdReport cmd = new cmdReport();
+                        cmd.PrintXreport(reportSummary);
+
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }).start();
             });
         }
     }
