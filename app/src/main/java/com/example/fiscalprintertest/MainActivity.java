@@ -102,9 +102,9 @@ public class MainActivity extends AppCompatActivity {
                     });
 
                     try {
-                        socket = device.createRfcommSocketToServiceRecord(UUID.randomUUID());//UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
+                        socket = device.createRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
 
-                        new Thread(() -> {
+                        executorService.execute(() -> {
                             try {
                                 socket.connect();
                                 PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
@@ -114,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
-                        }).start();
+                        });
 
                     } catch (IOException e) {
                         throw new RuntimeException(e);
